@@ -1,4 +1,4 @@
-# Dockerfile for Trending Words Spark Job
+# Dockerfile for Trending Words Job Scheduler
 FROM python:3.9-slim
 
 # Install Java (required for Spark)
@@ -27,23 +27,22 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir schedule requests
 
 # Copy application files
 COPY tokenizer_handler.py .
 COPY trending_words_job.py .
+COPY scheduler.py .
 COPY stopwords_vi.txt .
-COPY run_spark_job.sh .
-
-# Make script executable
-RUN chmod +x run_spark_job.sh
 
 # Default environment variables
 ENV HDFS_INPUT=hdfs://namenode:9000/raw_zone
 ENV HDFS_OUTPUT=hdfs://namenode:9000/work_zone/table_trending_words
-ENV SPARK_MASTER=yarn
+ENV SPARK_MASTER=spark://spark-master:7077
 ENV EXECUTOR_MEMORY=2G
 ENV EXECUTOR_CORES=2
+ENV SCHEDULE_INTERVAL=3600
 
 # Entry point
-ENTRYPOINT ["./run_spark_job.sh"]
+ENTRYPOINT ["python", "scheduler.py"]
