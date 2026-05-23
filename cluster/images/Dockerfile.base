@@ -26,6 +26,8 @@ COPY config/hdfs-site.xml /tmp/hdfs-site.xml
 COPY config/mapred-site.xml /tmp/mapred-site.xml
 COPY config/yarn-site.xml /tmp/yarn-site.xml
 
+RUN groupadd -r hadoop && useradd -r -g hadoop hadoop
+
 RUN test -f /tmp/hadoop-3.3.6.tar.gz && \
     mkdir -p /opt && \
     tar -xzf /tmp/hadoop-3.3.6.tar.gz -C /opt && \
@@ -42,8 +44,6 @@ RUN mkdir -p /opt/hadoop/etc/hadoop && \
     cp /tmp/yarn-site.xml /opt/hadoop/etc/hadoop/ && \
     chown -R hadoop:hadoop /opt/hadoop/etc/hadoop && \
     rm -f /tmp/*.xml
-
-RUN groupadd -r hadoop && useradd -r -g hadoop hadoop
 
 RUN mkdir -p /var/lib/hadoop-hdfs/cache \
     /var/lib/hadoop-yarn/cache \

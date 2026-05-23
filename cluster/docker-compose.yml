@@ -222,6 +222,115 @@ services:
       retries: 3
       start_period: 40s
 
+  # Spark Cluster
+  spark-base:
+    image: cluster-spark-3.5.0:base
+    build:
+      context: .
+      dockerfile: images/Dockerfile.spark-base
+    profiles:
+      - build-only
+
+  spark-master:
+    image: cluster-spark-3.5.0:master
+    build:
+      context: .
+      dockerfile: images/Dockerfile.spark-master
+      args:
+        SPARK_BASE_IMAGE: cluster-spark-3.5.0:base
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - "7077:7077" # Master RPC
+      - "8080:8080" # Web UI
+      - "4040:4040" # Driver Web UI
+    volumes:
+      - spark-master-work:/var/lib/spark/work
+      - spark-master-logs:/var/log/spark
+      - ./config/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
+      - ./config/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - hadoop-cluster
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  spark-worker1:
+    image: cluster-spark-3.5.0:worker
+    build:
+      context: .
+      dockerfile: images/Dockerfile.spark-worker
+      args:
+        SPARK_BASE_IMAGE: cluster-spark-3.5.0:base
+    container_name: spark-worker1
+    hostname: spark-worker1
+    ports:
+      - "8081:8081" # Web UI
+      - "4041:4040" # Executor Web UI
+    volumes:
+      - spark-worker1-work:/var/lib/spark/work
+      - spark-worker1-logs:/var/log/spark
+      - ./config/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
+      - ./config/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_WORKER_WEBUI_PORT=8081
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    networks:
+      - hadoop-cluster
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  spark-worker2:
+    image: cluster-spark-3.5.0:worker
+    build:
+      context: .
+      dockerfile: images/Dockerfile.spark-worker
+      args:
+        SPARK_BASE_IMAGE: cluster-spark-3.5.0:base
+    container_name: spark-worker2
+    hostname: spark-worker2
+    ports:
+      - "8082:8081" # Web UI (port mapped)
+      - "4042:4040" # Executor Web UI
+    volumes:
+      - spark-worker2-work:/var/lib/spark/work
+      - spark-worker2-logs:/var/log/spark
+      - ./config/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
+      - ./config/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_WORKER_WEBUI_PORT=8081
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    networks:
+      - hadoop-cluster
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 # Volumes (persistent storage)
 volumes:
   namenode-data:
@@ -247,6 +356,18 @@ volumes:
   nodemanager2-data:
     driver: local
   nodemanager2-logs:
+    driver: local
+  spark-master-work:
+    driver: local
+  spark-master-logs:
+    driver: local
+  spark-worker1-work:
+    driver: local
+  spark-worker1-logs:
+    driver: local
+  spark-worker2-work:
+    driver: local
+  spark-worker2-logs:
     driver: local
 
 # Network
