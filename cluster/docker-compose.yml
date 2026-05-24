@@ -20,9 +20,9 @@ services:
     container_name: hadoop-namenode
     hostname: namenode
     ports:
-      - "50070:50070" # Web UI
       - "9000:9000" # RPC
-      - "9870:9870" # HTTPS (3.3+)
+      - "9870:9870" # Web UI (3.3+)
+      - "50070:50070" # Web UI (actual port)
     volumes:
       - namenode-data:/var/lib/hadoop-hdfs/cache
       - namenode-logs:/var/log/hadoop-hdfs
@@ -384,7 +384,9 @@ services:
           "/opt/mysql/bin/mysqladmin",
           "ping",
           "-h",
-          "localhost",
+          "127.0.0.1",
+          "-P",
+          "3306",
           "-u",
           "root",
         ]
