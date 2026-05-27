@@ -83,6 +83,7 @@ class TrendingWordsSparkJob:
             ).filter(col("ngay").isNotNull())
             
             # Step 3-6: Clean, tokenize, explode, and aggregate
+            # ??? stupid
             df = df.withColumn(
                 "full_text",
                 regexp_replace(
