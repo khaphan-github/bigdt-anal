@@ -8,21 +8,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-11-jdk-headless \
+    ca-certificates \
     curl \
-    wget \
-    vim \
-    net-tools \
-    iputils-ping \
-    dnsutils \
-    sudo \
-    less \
     && rm -rf /var/lib/apt/lists/*
 
 COPY download/hadoop-3.3.6.tar.gz /tmp/hadoop-3.3.6.tar.gz
 COPY config/core-site.xml /tmp/core-site.xml
 COPY config/hdfs-site.xml /tmp/hdfs-site.xml
-COPY config/mapred-site.xml /tmp/mapred-site.xml
-COPY config/yarn-site.xml /tmp/yarn-site.xml
 
 RUN groupadd -r hadoop && useradd -r -g hadoop hadoop
 
@@ -38,8 +30,6 @@ RUN test -f /tmp/hadoop-3.3.6.tar.gz && \
 RUN mkdir -p /opt/hadoop/etc/hadoop && \
     cp /tmp/core-site.xml /opt/hadoop/etc/hadoop/ && \
     cp /tmp/hdfs-site.xml /opt/hadoop/etc/hadoop/ && \
-    cp /tmp/mapred-site.xml /opt/hadoop/etc/hadoop/ && \
-    cp /tmp/yarn-site.xml /opt/hadoop/etc/hadoop/ && \
     chown -R hadoop:hadoop /opt/hadoop/etc/hadoop && \
     rm -f /tmp/*.xml
 
